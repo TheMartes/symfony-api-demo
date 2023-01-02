@@ -1,0 +1,41 @@
+---
+version: "3"
+
+services:
+  web:
+    image: nginx:latest
+    working_dir: /app
+    depends_on:
+      - composer
+    volumes:
+      - ./:/app
+      - ./.docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "8901:80"
+
+  php:
+    build:
+      context: .docker/php
+    working_dir: /app
+    depends_on:
+      - composer
+    volumes:
+      - ./:/app
+      - ./.docker/php/php.ini:/usr/local/etc/php.ini
+
+  composer:
+    image: composer
+    volumes:
+      - ./:/app
+    command: composer install
+
+  database:
+    build:
+      context: ./.docker/mariadb
+    environment:
+      - MYSQL_DATABASE=${DATABASE_NAME}
+      - MYSQL_USER=${DATABASE_USER}
+      - MYSQL_PASSWORD=${DATABASE_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DATABASE_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
